@@ -1,11 +1,64 @@
-import { getShowsPage } from './shows'
 import { STATUS_CODES, get, wait, makeRequest } from './util'
 
 
 const url = `http://api.tvmaze.com/shows/1?embed[]=cast`
+const getShowsByPageUrl = (page) => `http://api.tvmaze.com/shows?page=${page}`
 
+function mapActor(actor) {
+    return {
+        actor_id: String(actor.id),
+        name: actor.name,
+        birthday: actor.birthday,
+    }
+}
 
-async function getCast(showId) {
+function mapShow(show) {
+    return {
+        show_id: String(show.id),
+        name: show.name
+    }
+}
+
+function mapShowsActors(showId, actors) {
+    return actors.map(actor => {
+        return {
+            show_id: showId,
+            actor_id: actor.actor_id,
+        }
+    })
+}
+
+async function getShowsPage(page) {
+    return new Promise((resolve, reject) => {
+        const url = getShowsByPageUrl(page)
+
+        get(url, (error, result) => {
+            if (error) {
+                if (error.statusCode === STATUS_CODES.TOO_MANY_REQUESTS) {
+                    resolve({
+                        shouldWait: true
+                    })
+                }
+                if (error.statusCode === STATUS_CODES.NOT_FOUND) {
+                    resolve({
+                        isEndOfList: true
+                    })
+                }
+                reject(error)
+            } else {
+                const shows = result.map(mapShow)
+
+                resolve({
+                    shouldWait: false,
+                    isEndOfList: false,
+                    shows
+                })
+            }
+        })
+    })
+}
+
+async function getActors(showId) {
     return new Promise((resolve, reject) => {
         const url = `http://api.tvmaze.com/shows/${showId}?embed[]=cast`
 
@@ -18,15 +71,12 @@ async function getCast(showId) {
                 }
                 reject(error);
             } else {
-                const mappedCast = result._embedded.cast.map(castMember => {
-                    return {
-                        actor_id: castMember.id,
-                        name: castMember.name,
-                        birthday: castMember.birthday,
-                    }
-                })
+                const actors = result._embedded.cast
+                    .map(castMember => castMember.person)
+                    .map(mapActor)
+
                 resolve({
-                    cast: mappedCast
+                    actors
                 })
             }
         })
@@ -52,9 +102,45 @@ async function persistActors(actors) {
     })
 }
 
-async function handleShowsPage(shows) {
-    shows.forEach
+async function persistShowsActors(showsActors) {
+    return new Promise((resolve, reject) => {
+        const requestOptions = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/showsActors',
+            method: 'PATCH'
+        }
+
+        makeRequest(requestOptions, showsActors, (error, result) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(result)
+            }
+        })
+    })
 }
+
+async function persistShowsPage(shows) {
+    return new Promise((resolve, reject) => {
+        const requestOptions = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/shows',
+            method: 'PATCH'
+        }
+
+        makeRequest(requestOptions, shows, (error, result) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(result)
+            }
+        })
+    })
+}
+
+
 
 async function loop() {
     let shouldStop = false;
@@ -73,20 +159,35 @@ async function loop() {
             await wait(2000);
         } else {
             page++
+            await persistShowsPage(shows);
+            console.log(`Page: ${page}. Shows persisted`)
 
+            for (let i = 0; i < shows.length; i++) {
+                const show = shows[i]
 
-            async function loopShows() {
-                for (let i = 0; i < shows.length; i++) {
-                    const show = shows[i]
+                while (true) {
+                    const { shouldWait, actors } = await getActors(show.show_id)
 
-                    const { shouldWait, cast } = await getCast(show.show_id)
+                    console.log(actors)
 
-                    await persistActors(cast)
+                    if (shouldWait) {
+                        console.log(`Waiting ${2000}`)
+                        await wait(2000);
+                    } else {
+                        const showsActors = mapShowsActors(show.show_id, actors)
+
+                        await persistActors(actors)
+                        console.log(`Page: ${page}. Actors persisted`)
+                        await persistShowsActors(showsActors)
+                        console.log(`Page: ${page}. Shows actors persisted`)
+
+                        break
+                    }
+                    break
                 }
+                break;
             }
-
-            loopShows()
-
+            break;
         }
     }
 }

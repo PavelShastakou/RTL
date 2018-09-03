@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-ts": "tsc",
     "watch-ts": "tsc -w",
-    "run": "node ./dist/shows.js"
+    "run": "node ./dist/showCast.js"
   },
   "author": "",
   "license": "ISC",
