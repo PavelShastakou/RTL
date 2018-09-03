@@ -1,7 +1,7 @@
 import IDataStore from "../../db/iDataStore";
 import DataStoreProvider from "../../db/DataStoreProvider";
 import Actor from "../../models/actor";
-import { SAVE_ACTOR, GET_ACTOR } from './queries';
+import { SAVE_ACTOR, GET_ACTOR, PATCH_ACTORS } from './queries';
 
 
 class ActorsRepository {
@@ -13,6 +13,13 @@ class ActorsRepository {
 
     saveActor(actor: Actor, done: Function) {
         this.dataStore.executeQuery(SAVE_ACTOR, [actor], done)
+    }
+
+    patchActors(actors: Actor[], done: Function) {
+        const bulkShows = actors.map(actor => {
+            return [actor.actor_id, actor.name, actor.birthday];
+        })
+        this.dataStore.executeQuery(PATCH_ACTORS, [bulkShows], done)
     }
 
     getActor(actorId: String, done: Function) {

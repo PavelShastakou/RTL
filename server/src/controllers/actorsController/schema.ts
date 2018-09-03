@@ -1,6 +1,4 @@
-
-const ACTOR_SCHEMA = {
-    'id': '/src/controllers/actorsController/schema',
+const SINGLE_ACTOR_SCHEMA = {
     'type': 'object',
 
     'properties': {
@@ -25,6 +23,20 @@ const ACTOR_SCHEMA = {
     ]
 }
 
+const ACTOR_SCHEMA = {
+    'id': '/src/controllers/actorsController/schema/ACTOR_SCHEMA',
+    ...SINGLE_ACTOR_SCHEMA
+}
+
+const ACTORS_SCHEMA = {
+    'id': '/src/controllers/actorsController/schema/ACTORS_SCHEMA',
+    'type': 'array',
+    'items': {
+        ...SINGLE_ACTOR_SCHEMA
+    }
+}
+
 export {
-    ACTOR_SCHEMA
+    ACTOR_SCHEMA,
+    ACTORS_SCHEMA
 }
