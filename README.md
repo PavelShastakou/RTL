@@ -16,10 +16,10 @@ This
 
 ### Installing
 
-Step
+Run
 
 ```
-Step example
+docker-compose up
 ```
 
 And repeat

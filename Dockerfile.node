@@ -1,0 +1,9 @@
+FROM node:latest
+
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+COPY ./server /usr/src/app
+
+RUN cd /usr/src/app && \
+    npm i
