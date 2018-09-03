@@ -29,7 +29,7 @@ class ShowsActorsController extends BaseController {
             const errors = this.ajv.errors;
 			this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
         } else {
-            ShowsRepository.patchShows(showsActors, (error, result) => {
+            ShowsActorsRepository.patchShowsActors(showsActors, (error, result) => {
                 if (error) {
                     this.errorResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, error)
                 } else {

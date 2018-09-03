@@ -22,11 +22,38 @@ class ShowsActorsRepository {
 
     getShowsActors(page: number, done: Function) {
         const limit = SHOWS_PER_PAGE
-        const offset = (page - 1) * SHOWS_PER_PAGE
+        const offset = page * SHOWS_PER_PAGE
 
-        this.dataStore.executeQuery(GET_SHOW_ACTORS, [limit, offset], done)
+        this.dataStore.executeQuery(GET_SHOW_ACTORS, [limit, offset], (error, result) => {
+            if (error) {
+                done(error)
+            } else {
+                done(null, this.reduceRows(result))
+            }
+        })
     }
 
+    reduceRows(rows) {
+        const reducedByShow = rows.reduce((acc, row) => {
+            const showId = row.SHOW_ID;
+            if (!acc[showId]) {
+                acc[showId] = {
+                    id: showId,
+                    cast: []
+                }
+            }
+
+            acc[showId].cast.push({
+                id: row.ACTOR_ID,
+                name: row.NAME,
+                birthday: row.BIRTHDAY,
+            })
+
+            return acc;
+        }, {})
+
+        return Object.values(reducedByShow)
+    }
 
 }
 

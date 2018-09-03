@@ -27,6 +27,7 @@ const SHOW_SCHEMA = {
 const SHOWS_SCHEMA = {
     'id': '/src/controllers/showsController/schema/SHOWS_SCHEMA',
     'type': 'array',
+    'minItems': 0,
     'items': {
         ...SINGLE_SHOW_SCHEMA
     }

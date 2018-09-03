@@ -31,6 +31,7 @@ const ACTOR_SCHEMA = {
 const ACTORS_SCHEMA = {
     'id': '/src/controllers/actorsController/schema/ACTORS_SCHEMA',
     'type': 'array',
+    'minItems': 0,
     'items': {
         ...SINGLE_ACTOR_SCHEMA
     }

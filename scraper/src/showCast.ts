@@ -160,7 +160,12 @@ async function loop() {
             await wait(2000);
         } else {
             page++
-            await persistShowsPage(shows);
+
+            try {
+                await persistShowsPage(shows);
+            } catch (error) {
+                console.error(error)
+            }
             console.log(`Page: ${page}. Shows persisted`)
 
             for (let i = 0; i < shows.length; i++) {
@@ -177,18 +182,27 @@ async function loop() {
                     } else {
                         const showsActors = mapShowsActors(show.show_id, actors)
 
-                        await persistActors(actors)
+                        try {
+                            await persistActors(actors)
+                        } catch (error) {
+                            console.error(error)
+                        }
                         console.log(`Page: ${page}. Actors persisted`)
-                        await persistShowsActors(showsActors)
+
+                        try {
+                            await persistShowsActors(showsActors)
+                        } catch (error) {
+                            console.error(error)
+                        }
                         console.log(`Page: ${page}. Shows actors persisted`)
 
                         break
                     }
-                    break
+                    // break
                 }
-                break;
+                // break;
             }
-            break;
+            // break;
         }
     }
 }
