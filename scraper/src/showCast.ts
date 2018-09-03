@@ -8,7 +8,8 @@ function mapActor(actor) {
     return {
         actor_id: String(actor.id),
         name: actor.name,
-        birthday: actor.birthday,
+        // TODO: Make table column nullable
+        birthday: actor.birthday || '1000-01-01',
     }
 }
 

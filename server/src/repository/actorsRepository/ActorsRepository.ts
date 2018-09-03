@@ -16,10 +16,10 @@ class ActorsRepository {
     }
 
     patchActors(actors: Actor[], done: Function) {
-        const bulkShows = actors.map(actor => {
+        const bulkActors = actors.map(actor => {
             return [actor.actor_id, actor.name, actor.birthday];
         })
-        this.dataStore.executeQuery(PATCH_ACTORS, [bulkShows], done)
+        this.dataStore.executeQuery(PATCH_ACTORS, [bulkActors], done)
     }
 
     getActor(actorId: String, done: Function) {

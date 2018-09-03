@@ -17,7 +17,8 @@ class ActorsController extends BaseController {
         this.router = Router();
 
         this.router.post('/', this.createActor.bind(this));
-        this.router.get('/:showId', this.getActor.bind(this));
+        this.router.get('/:actorId', this.getActor.bind(this));
+        this.router.patch('/', this.patchActors.bind(this));
     }
 
     createActor(req: Request, res: Response) {
@@ -40,6 +41,7 @@ class ActorsController extends BaseController {
 
     patchActors(req: Request, res: Response) {
         const actors = req.body;
+
         const isValid = this.ajv.validate(ACTORS_SCHEMA, actors);
 
         if (!isValid) {
@@ -57,7 +59,7 @@ class ActorsController extends BaseController {
     }
 
     getActor(req: Request, res: Response) {
-        ActorsRepository.getActor(req.params.showId, (error, result) => {
+        ActorsRepository.getActor(req.params.actorId, (error, result) => {
             if (error) {
                 this.errorResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, error)
             } else {

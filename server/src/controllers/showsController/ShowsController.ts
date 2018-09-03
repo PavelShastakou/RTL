@@ -41,7 +41,6 @@ class ShowsController extends BaseController {
 
     patchShows(req: Request, res: Response) {
         const shows = req.body;
-        console.log(shows)
         const isValid = this.ajv.validate(SHOWS_SCHEMA, shows);
 
         if (!isValid) {

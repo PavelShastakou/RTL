@@ -4,6 +4,7 @@ import http from 'http';
 export const STATUS_CODES = {
     TOO_MANY_REQUESTS: 429,
     NOT_FOUND: 404,
+    BAD_REQUEST: 400,
 }
 
 interface RequestOptions {
@@ -30,6 +31,7 @@ function makeRequest(requestOptions: RequestOptions, data, callback) {
 
     const req = http.request(options, (res) => {
         res.setEncoding('utf8');
+        const statusCode = res.statusCode
 
         let data = ''
         res.on('data', (chunk) => {
@@ -37,8 +39,13 @@ function makeRequest(requestOptions: RequestOptions, data, callback) {
         });
         res.on('end', () => {
             if (!isCallbackCalled) {
-                callback(null, data);
-                isCallbackCalled = true
+                if (statusCode === STATUS_CODES.NOT_FOUND || statusCode === STATUS_CODES.BAD_REQUEST || statusCode === 500) {
+                    callback(data);
+                    isCallbackCalled = true
+                } else {
+                    callback(null, data);
+                    isCallbackCalled = true
+                }
             }
         });
     });
