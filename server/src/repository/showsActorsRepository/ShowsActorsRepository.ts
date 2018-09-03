@@ -1,6 +1,6 @@
 import IDataStore from "../../db/iDataStore";
 import DataStoreProvider from "../../db/DataStoreProvider";
-import ShowActor from "../../models/showActor";
+import ShowActor from "../../models/ShowActor";
 import { PATCH_SHOWS_ACTORS, GET_SHOW_ACTORS } from './queries';
 
 const SHOWS_PER_PAGE = 10;

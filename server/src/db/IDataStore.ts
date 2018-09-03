@@ -7,7 +7,6 @@ interface ExecuteFunctionsFunction {
 }
 
 
-
 export default interface IDataStore {
     /**
      * Execute single query, wrapped in a transaction

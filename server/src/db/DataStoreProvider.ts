@@ -3,7 +3,6 @@ import IDataStore from "./IDataStore";
 
 const databaseEngine: String = process.env['DATABASE_ENGINE'];
 
-console.log(databaseEngine)
 
 class DataStoreProvider {
     getDataStore(): IDataStore {

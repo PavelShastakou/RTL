@@ -1,6 +1,6 @@
 import IDataStore from "../../db/iDataStore";
 import DataStoreProvider from "../../db/DataStoreProvider";
-import Show from "../../models/show";
+import Show from "../../models/Show";
 import { SAVE_SHOW, GET_SHOW, PATCH_SHOWS } from './queries';
 
 

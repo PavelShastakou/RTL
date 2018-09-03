@@ -1,6 +1,6 @@
 import IDataStore from "../../db/iDataStore";
 import DataStoreProvider from "../../db/DataStoreProvider";
-import Actor from "../../models/actor";
+import Actor from "../../models/Actor";
 import { SAVE_ACTOR, GET_ACTOR, PATCH_ACTORS } from './queries';
 
 

@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import BaseController from '../BaseController';
-import ShowsRepository from '../../repository/showsRepository/ShowsRepository';
 import ajv, { Ajv } from 'ajv';
 import { SHOW_ACTORS_SCHEMA } from './schema';
 import { STATUS_CODES } from '../constants';
