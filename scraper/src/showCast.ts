@@ -1,7 +1,6 @@
 import { STATUS_CODES, get, wait, makeRequest } from './util'
 
 
-const url = `http://api.tvmaze.com/shows/1?embed[]=cast`
 const getShowsByPageUrl = (page) => `http://api.tvmaze.com/shows?page=${page}`
 
 function mapActor(actor) {
@@ -174,8 +173,6 @@ async function loop() {
                 while (true) {
                     const { shouldWait, actors } = await getActors(show.show_id)
 
-                    console.log(actors)
-
                     if (shouldWait) {
                         console.log(`Waiting ${2000}`)
                         await wait(2000);
@@ -198,11 +195,8 @@ async function loop() {
 
                         break
                     }
-                    // break
                 }
-                // break;
             }
-            // break;
         }
     }
 }
