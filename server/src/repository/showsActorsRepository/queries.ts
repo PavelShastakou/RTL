@@ -1,6 +1,6 @@
-const SHOWS_ACTORS_TABLE = 'SHOW_ACTORS';
-const ACTORS_TABLE = 'ACTORS';
-const SHOWS_TABLE = 'SHOWS';
+const SHOWS_ACTORS_TABLE = "SHOW_ACTORS";
+const ACTORS_TABLE = "ACTORS";
+const SHOWS_TABLE = "SHOWS";
 
 export const PATCH_SHOWS_ACTORS = `REPLACE INTO ${SHOWS_ACTORS_TABLE} (show_id, actor_id) VALUES ?`;
 
@@ -13,4 +13,4 @@ export const GET_SHOW_ACTORS = `
 
         LEFT JOIN ${ACTORS_TABLE} a
             ON sa.ACTOR_ID = a.ACTOR_ID
-`
+`;

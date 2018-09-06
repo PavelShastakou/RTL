@@ -1,24 +1,23 @@
-import { Router, Request, Response } from 'express';
-import BaseController from '../BaseController';
-import ActorsRepository from '../../repository/actorsRepository/ActorsRepository';
-import ajv, { Ajv } from 'ajv';
-import { ACTOR_SCHEMA, ACTORS_SCHEMA } from './schema';
-import { STATUS_CODES } from '../constants';
-
+import { Router, Request, Response } from "express";
+import BaseController from "../BaseController";
+import ActorsRepository from "../../repository/actorsRepository/ActorsRepository";
+import ajv, { Ajv } from "ajv";
+import { ACTOR_SCHEMA, ACTORS_SCHEMA } from "./schema";
+import { STATUS_CODES } from "../constants";
 
 class ActorsController extends BaseController {
     ajv: Ajv;
     router: Router;
 
     constructor() {
-        super()
+        super();
 
         this.ajv = new ajv();
         this.router = Router();
 
-        this.router.post('/', this.createActor.bind(this));
-        this.router.get('/:actorId', this.getActor.bind(this));
-        this.router.patch('/', this.patchActors.bind(this));
+        this.router.post("/", this.createActor.bind(this));
+        this.router.get("/:actorId", this.getActor.bind(this));
+        this.router.patch("/", this.patchActors.bind(this));
     }
 
     createActor(req: Request, res: Response) {
@@ -27,15 +26,19 @@ class ActorsController extends BaseController {
 
         if (!isValid) {
             const errors = this.ajv.errors;
-			this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
+            this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
         } else {
             ActorsRepository.saveActor(actor, (error, result) => {
                 if (error) {
-                    this.errorResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, error)
+                    this.errorResponse(
+                        res,
+                        STATUS_CODES.INTERNAL_SERVER_ERROR,
+                        error
+                    );
                 } else {
-                    this.okResponse(res, result)
+                    this.okResponse(res, result);
                 }
-            })
+            });
         }
     }
 
@@ -46,27 +49,35 @@ class ActorsController extends BaseController {
 
         if (!isValid) {
             const errors = this.ajv.errors;
-			this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
+            this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
         } else {
             ActorsRepository.patchActors(actors, (error, result) => {
                 if (error) {
-                    this.errorResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, error)
+                    this.errorResponse(
+                        res,
+                        STATUS_CODES.INTERNAL_SERVER_ERROR,
+                        error
+                    );
                 } else {
-                    this.okResponse(res, result)
+                    this.okResponse(res, result);
                 }
-            })
+            });
         }
     }
 
     getActor(req: Request, res: Response) {
         ActorsRepository.getActor(req.params.actorId, (error, result) => {
             if (error) {
-                this.errorResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, error)
+                this.errorResponse(
+                    res,
+                    STATUS_CODES.INTERNAL_SERVER_ERROR,
+                    error
+                );
             } else {
-                this.okResponse(res, result)
+                this.okResponse(res, result);
             }
-        })
+        });
     }
 }
 
-export default new ActorsController().router
+export default new ActorsController().router;

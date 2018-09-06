@@ -6,7 +6,6 @@ interface ExecuteFunctionsFunction {
     (functions: Function[], callback: Function): void;
 }
 
-
 export default interface IDataStore {
     /**
      * Execute single query, wrapped in a transaction
@@ -23,4 +22,3 @@ export default interface IDataStore {
      */
     executeSeries: ExecuteFunctionsFunction;
 }
-

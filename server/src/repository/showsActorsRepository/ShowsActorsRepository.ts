@@ -1,10 +1,9 @@
 import IDataStore from "../../db/iDataStore";
 import DataStoreProvider from "../../db/DataStoreProvider";
-import ShowActor from "../../models/ShowActor";
-import { PATCH_SHOWS_ACTORS, GET_SHOW_ACTORS } from './queries';
+import ShowActor from "../../entities/ShowActor";
+import { PATCH_SHOWS_ACTORS, GET_SHOW_ACTORS } from "./queries";
 
 const SHOWS_PER_PAGE = 10;
-
 
 class ShowsActorsRepository {
     dataStore: IDataStore;
@@ -16,21 +15,25 @@ class ShowsActorsRepository {
     patchShowsActors(showActors: ShowActor[], done: Function) {
         const bulkShowActors = showActors.map(showActor => {
             return [showActor.show_id, showActor.actor_id];
-        })
-        this.dataStore.executeQuery(PATCH_SHOWS_ACTORS, [bulkShowActors], done)
+        });
+        this.dataStore.executeQuery(PATCH_SHOWS_ACTORS, [bulkShowActors], done);
     }
 
     getShowsActors(page: number, done: Function) {
-        const limit = SHOWS_PER_PAGE
-        const offset = page * SHOWS_PER_PAGE
+        const limit = SHOWS_PER_PAGE;
+        const offset = page * SHOWS_PER_PAGE;
 
-        this.dataStore.executeQuery(GET_SHOW_ACTORS, [limit, offset], (error, result) => {
-            if (error) {
-                done(error)
-            } else {
-                done(null, this.reduceRows(result))
+        this.dataStore.executeQuery(
+            GET_SHOW_ACTORS,
+            [limit, offset],
+            (error, result) => {
+                if (error) {
+                    done(error);
+                } else {
+                    done(null, this.reduceRows(result));
+                }
             }
-        })
+        );
     }
 
     reduceRows(rows) {
@@ -40,21 +43,20 @@ class ShowsActorsRepository {
                 acc[showId] = {
                     id: showId,
                     cast: []
-                }
+                };
             }
 
             acc[showId].cast.push({
                 id: row.ACTOR_ID,
                 name: row.NAME,
-                birthday: row.BIRTHDAY,
-            })
+                birthday: row.BIRTHDAY
+            });
 
             return acc;
-        }, {})
+        }, {});
 
-        return Object.values(reducedByShow)
+        return Object.values(reducedByShow);
     }
-
 }
 
-export default new ShowsActorsRepository(DataStoreProvider.getDataStore())
+export default new ShowsActorsRepository(DataStoreProvider.getDataStore());
