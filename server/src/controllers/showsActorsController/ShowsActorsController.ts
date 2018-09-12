@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import BaseController from "../BaseController";
 import ajv, { Ajv } from "ajv";
-import { SHOW_ACTORS_SCHEMA } from "./schema";
+import { PATCH_SHOW_ACTORS_SCHEMA, GET_SHOW_ACTORS_SCHEMA } from "./schema";
 import { STATUS_CODES } from "../constants";
 import ShowsActorsRepository from "../../repository/showsActorsRepository/ShowsActorsRepository";
 
@@ -12,7 +12,7 @@ class ShowsActorsController extends BaseController {
     constructor() {
         super();
 
-        this.ajv = new ajv();
+        this.ajv = new ajv({ coerceTypes: true });
         this.router = Router();
 
         this.router.patch("/", this.patchShowActors.bind(this));
@@ -21,21 +21,20 @@ class ShowsActorsController extends BaseController {
 
     patchShowActors(req: Request, res: Response) {
         const showsActors = req.body;
-        const isValid = this.ajv.validate(SHOW_ACTORS_SCHEMA, showsActors);
+        const isValid = this.ajv.validate(
+            PATCH_SHOW_ACTORS_SCHEMA,
+            showsActors
+        );
 
         if (!isValid) {
             const errors = this.ajv.errors;
-            this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
+            this.errorResponse(res, errors, STATUS_CODES.BAD_REQUEST);
         } else {
             ShowsActorsRepository.patchShowsActors(
                 showsActors,
-                (error, result) => {
+                (error: any, result: any) => {
                     if (error) {
-                        this.errorResponse(
-                            res,
-                            STATUS_CODES.INTERNAL_SERVER_ERROR,
-                            error
-                        );
+                        this.errorResponse(res, error);
                     } else {
                         this.okResponse(res, result);
                     }
@@ -45,19 +44,29 @@ class ShowsActorsController extends BaseController {
     }
 
     getShowActors(req: Request, res: Response) {
-        const { page } = req.query;
+        const queryParams = req.query;
 
-        ShowsActorsRepository.getShowsActors(page, (error, result) => {
-            if (error) {
-                this.errorResponse(
-                    res,
-                    STATUS_CODES.INTERNAL_SERVER_ERROR,
-                    error
-                );
-            } else {
-                this.okResponse(res, result);
-            }
-        });
+        console.log(queryParams);
+
+        const isValid = this.ajv.validate(GET_SHOW_ACTORS_SCHEMA, queryParams);
+
+        if (!isValid) {
+            const errors = this.ajv.errors;
+            this.errorResponse(res, errors, STATUS_CODES.BAD_REQUEST);
+        } else {
+            const page = queryParams.page;
+
+            ShowsActorsRepository.getShowsActors(
+                page,
+                (error: any, result: any) => {
+                    if (error) {
+                        this.errorResponse(res, error);
+                    } else {
+                        this.okResponse(res, result);
+                    }
+                }
+            );
+        }
     }
 }
 

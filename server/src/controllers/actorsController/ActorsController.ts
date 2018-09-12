@@ -2,7 +2,11 @@ import { Router, Request, Response } from "express";
 import BaseController from "../BaseController";
 import ActorsRepository from "../../repository/actorsRepository/ActorsRepository";
 import ajv, { Ajv } from "ajv";
-import { ACTOR_SCHEMA, ACTORS_SCHEMA } from "./schema";
+import {
+    POST_ACTOR_SCHEMA,
+    PATCH_ACTORS_SCHEMA,
+    GET_ACTOR_SCHEMA
+} from "./schema";
 import { STATUS_CODES } from "../constants";
 
 class ActorsController extends BaseController {
@@ -22,19 +26,15 @@ class ActorsController extends BaseController {
 
     createActor(req: Request, res: Response) {
         const actor = req.body;
-        const isValid = this.ajv.validate(ACTOR_SCHEMA, actor);
+        const isValid = this.ajv.validate(POST_ACTOR_SCHEMA, actor);
 
         if (!isValid) {
             const errors = this.ajv.errors;
-            this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
+            this.errorResponse(res, errors, STATUS_CODES.BAD_REQUEST);
         } else {
-            ActorsRepository.saveActor(actor, (error, result) => {
+            ActorsRepository.saveActor(actor, (error: any, result: any) => {
                 if (error) {
-                    this.errorResponse(
-                        res,
-                        STATUS_CODES.INTERNAL_SERVER_ERROR,
-                        error
-                    );
+                    this.errorResponse(res, error);
                 } else {
                     this.okResponse(res, result);
                 }
@@ -45,19 +45,14 @@ class ActorsController extends BaseController {
     patchActors(req: Request, res: Response) {
         const actors = req.body;
 
-        const isValid = this.ajv.validate(ACTORS_SCHEMA, actors);
+        const isValid = this.ajv.validate(PATCH_ACTORS_SCHEMA, actors);
 
         if (!isValid) {
-            const errors = this.ajv.errors;
-            this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
+            this.errorResponse(res, this.ajv.errors, STATUS_CODES.BAD_REQUEST);
         } else {
-            ActorsRepository.patchActors(actors, (error, result) => {
+            ActorsRepository.patchActors(actors, (error: any, result: any) => {
                 if (error) {
-                    this.errorResponse(
-                        res,
-                        STATUS_CODES.INTERNAL_SERVER_ERROR,
-                        error
-                    );
+                    this.errorResponse(res, error);
                 } else {
                     this.okResponse(res, result);
                 }
@@ -66,17 +61,24 @@ class ActorsController extends BaseController {
     }
 
     getActor(req: Request, res: Response) {
-        ActorsRepository.getActor(req.params.actorId, (error, result) => {
-            if (error) {
-                this.errorResponse(
-                    res,
-                    STATUS_CODES.INTERNAL_SERVER_ERROR,
-                    error
-                );
-            } else {
-                this.okResponse(res, result);
-            }
-        });
+        const queryParams = req.params;
+
+        const isValid = this.ajv.validate(GET_ACTOR_SCHEMA, queryParams);
+
+        if (!isValid) {
+            this.errorResponse(res, this.ajv.errors, STATUS_CODES.BAD_REQUEST);
+        } else {
+            ActorsRepository.getActor(queryParams.actorId, (error: any, result: any) => {
+                if (error) {
+                    this.errorResponse(
+                        res,
+                        error
+                    );
+                } else {
+                    this.okResponse(res, result);
+                }
+            });
+        }
     }
 }
 

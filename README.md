@@ -1,21 +1,27 @@
-# Project Title
-
-RTL test project
-
+# Running server container
 
 ### Prerequisites
-
-You need
 
 ```
 Docker
 ```
 
-### Installing
-
-Run
+Then run
 
 ```
 docker-compose up
 ```
 
+# Running scraper
+
+### Prerequisites
+
+```
+Node
+```
+
+```
+cd ./scraper
+npm i
+npm run start
+```

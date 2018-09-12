@@ -26,7 +26,7 @@ class ShowsActorsRepository {
         this.dataStore.executeQuery(
             GET_SHOW_ACTORS,
             [limit, offset],
-            (error, result) => {
+            (error: any, result: any) => {
                 if (error) {
                     done(error);
                 } else {
@@ -41,14 +41,15 @@ class ShowsActorsRepository {
             const showId = row.SHOW_ID;
             if (!acc[showId]) {
                 acc[showId] = {
-                    id: showId,
+                    id: row.SHOW_ID,
+                    name: row.SHOW_NAME,
                     cast: []
                 };
             }
 
             acc[showId].cast.push({
                 id: row.ACTOR_ID,
-                name: row.NAME,
+                name: row.ACTOR_NAME,
                 birthday: row.BIRTHDAY
             });
 

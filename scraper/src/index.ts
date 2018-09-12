@@ -1,206 +1,91 @@
-import { STATUS_CODES, get, wait, makeRequest } from "./util";
-import Actor from "./entities/Actor";
-import Show from "./entities/Show";
-import ShowActor from "./entities/ShowActor";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env" });
 
-const getShowsByPageUrl = page => `http://api.tvmaze.com/shows?page=${page}`;
+import { wait } from "./util";
+import { getActors, persistActors } from "./feature/actor";
+import { getShowsPage, persistShows } from "./feature/show";
+import {
+    internalizeShowsActors,
+    persistShowsActors
+} from "./feature/showActors";
+import { logger } from "./logger";
 
-function mapActor(actor): Actor {
-    return {
-        actor_id: String(actor.id),
-        name: actor.name,
-        // TODO: Make table column nullable
-        birthday: actor.birthday || "1000-01-01"
-    };
-}
-
-function mapShow(show): Show {
-    return {
-        show_id: String(show.id),
-        name: show.name
-    };
-}
-
-function mapShowsActors(showId, actors): ShowActor[] {
-    return actors.map(actor => {
-        return {
-            show_id: showId,
-            actor_id: actor.actor_id
-        };
-    });
-}
-
-async function getShowsPage(page) {
-    return new Promise((resolve, reject) => {
-        const url = getShowsByPageUrl(page);
-
-        get(url, (error, result) => {
-            if (error) {
-                if (error.statusCode === STATUS_CODES.TOO_MANY_REQUESTS) {
-                    resolve({
-                        shouldWait: true
-                    });
-                }
-                if (error.statusCode === STATUS_CODES.NOT_FOUND) {
-                    resolve({
-                        isEndOfList: true
-                    });
-                }
-                reject(error);
-            } else {
-                const shows = result.map(mapShow);
-
-                resolve({
-                    shouldWait: false,
-                    isEndOfList: false,
-                    shows
-                });
-            }
-        });
-    });
-}
-
-async function getActors(showId) {
-    return new Promise((resolve, reject) => {
-        const url = `http://api.tvmaze.com/shows/${showId}?embed[]=cast`;
-
-        get(url, (error, result) => {
-            if (error) {
-                if (error.statusCode === STATUS_CODES.TOO_MANY_REQUESTS) {
-                    resolve({
-                        shouldWait: true
-                    });
-                }
-                reject(error);
-            } else {
-                const actors = result._embedded.cast
-                    .map(castMember => castMember.person)
-                    .map(mapActor);
-
-                resolve({
-                    actors
-                });
-            }
-        });
-    });
-}
-
-async function persistActors(actors) {
-    return new Promise((resolve, reject) => {
-        const requestOptions = {
-            hostname: "localhost",
-            port: 3000,
-            path: "/actors",
-            method: "PATCH"
-        };
-
-        makeRequest(requestOptions, actors, (error, result) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-}
-
-async function persistShowsActors(showsActors) {
-    return new Promise((resolve, reject) => {
-        const requestOptions = {
-            hostname: "localhost",
-            port: 3000,
-            path: "/showsActors",
-            method: "PATCH"
-        };
-
-        makeRequest(requestOptions, showsActors, (error, result) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-}
-
-async function persistShowsPage(shows) {
-    return new Promise((resolve, reject) => {
-        const requestOptions = {
-            hostname: "localhost",
-            port: 3000,
-            path: "/shows",
-            method: "PATCH"
-        };
-
-        makeRequest(requestOptions, shows, (error, result) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-}
+import { withRepeating } from "./util/hofs";
 
 async function loop() {
-    let shouldStop = false;
     let page = 0;
 
     while (true) {
-        console.log(`Page: ${page}`);
+        const withRepeatingGetShowsPage = withRepeating(() =>
+            getShowsPage(page)
+        );
 
-        const { shouldWait, isEndOfList, shows } = await getShowsPage(page);
+        const { errors, result, succeeded } = await withRepeatingGetShowsPage();
 
-        if (isEndOfList) {
-            console.log(`End of list`);
+        if (!succeeded) {
+            logger.info(`Error retrieving shows of page ${page}`, errors);
             break;
-        } else if (shouldWait) {
-            console.log(`Waiting ${2000}`);
-            await wait(2000);
-        } else {
-            page++;
+        }
 
-            try {
-                await persistShowsPage(shows);
-            } catch (error) {
-                console.error(error);
-            }
-            console.log(`Page: ${page}. Shows persisted`);
+        if (result === null) {
+            // Last page
+            logger.info(`End of list`);
+            break;
+        }
+        page++;
+        const shows = result;
 
-            for (let i = 0; i < shows.length; i++) {
-                const show = shows[i];
+        try {
+            await persistShows(shows);
+            logger.info(`Shows page: ${page}. Shows data persisted`);
+        } catch (error) {
+            logger.error(error);
+        }
 
-                while (true) {
-                    const { shouldWait, actors } = await getActors(
-                        show.show_id
+        for (let i = 0; i < shows.length; i++) {
+            const show = shows[i];
+            const showId = show.show_id;
+
+            const withRepeatingGetActors = withRepeating(() =>
+                getActors(showId)
+            );
+
+            const {
+                succeeded,
+                errors,
+                result
+            } = await withRepeatingGetActors();
+
+            if (!succeeded) {
+                logger.error(
+                    `Error retrieving actors of show with id: ${page}`,
+                    errors
+                );
+            } else {
+                const actors = result;
+
+                try {
+                    await persistActors(actors);
+                    logger.info(`Shows page: ${page}. Actors data persisted`);
+                } catch (error) {
+                    logger.error(
+                        `Shows page: ${page}. Actors data persisted`,
+                        error
                     );
-
-                    if (shouldWait) {
-                        console.log(`Waiting ${2000}`);
-                        await wait(2000);
-                    } else {
-                        const showsActors = mapShowsActors(
-                            show.show_id,
-                            actors
-                        );
-
-                        try {
-                            await persistActors(actors);
-                        } catch (error) {
-                            console.error(error);
-                        }
-                        console.log(`Page: ${page}. Actors persisted`);
-
-                        try {
-                            await persistShowsActors(showsActors);
-                        } catch (error) {
-                            console.error(error);
-                        }
-                        console.log(`Page: ${page}. Shows actors persisted`);
-
-                        break;
-                    }
                 }
+
+                try {
+                    const showsActors = internalizeShowsActors(
+                        show.show_id,
+                        actors
+                    );
+                    await persistShowsActors(showsActors);
+                    logger.info(`Page: ${page}. Shows actors persisted`);
+                } catch (error) {
+                    logger.error(error);
+                }
+
+                break;
             }
         }
     }

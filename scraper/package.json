@@ -12,9 +12,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/dotenv": "^4.0.3",
     "@types/node": "^10.9.4",
     "prettier": "1.14.2",
     "typescript": "^3.0.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "winston": "^3.1.0"
+  }
 }

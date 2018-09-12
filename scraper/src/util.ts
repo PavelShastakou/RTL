@@ -1,10 +1,6 @@
 import http from "http";
+import { STATUS_CODES } from "./constants";
 
-export const STATUS_CODES = {
-    TOO_MANY_REQUESTS: 429,
-    NOT_FOUND: 404,
-    BAD_REQUEST: 400
-};
 
 interface RequestOptions {
     hostname: string;
@@ -13,7 +9,7 @@ interface RequestOptions {
     method: string;
 }
 
-function makeRequest(requestOptions: RequestOptions, data, callback) {
+function makeRequest(requestOptions: RequestOptions, data: any, callback: Function) {
     let isCallbackCalled = false;
     const stringifiedData = JSON.stringify(data);
 
@@ -64,7 +60,7 @@ function makeRequest(requestOptions: RequestOptions, data, callback) {
     req.end();
 }
 
-function get(url, callback) {
+function get(url: string, callback: Function) {
     http.get(url, res => {
         const { statusCode } = res;
 
@@ -95,7 +91,9 @@ function get(url, callback) {
     });
 }
 
-async function wait(ms) {
+const DEFAULT_WAIT_TIMEOUT = 2000
+
+async function wait(ms: number = DEFAULT_WAIT_TIMEOUT) {
     return new Promise(resolve => {
         setTimeout(() => {
             resolve();

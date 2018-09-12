@@ -2,7 +2,11 @@ import { Router, Request, Response } from "express";
 import BaseController from "../BaseController";
 import ShowsRepository from "../../repository/showsRepository/ShowsRepository";
 import ajv, { Ajv } from "ajv";
-import { SHOW_SCHEMA, SHOWS_SCHEMA } from "./schema";
+import {
+    POST_SHOW_SCHEMA,
+    PATCH_SHOWS_SCHEMA,
+    GET_SHOW_SCHEMA
+} from "./schema";
 import { STATUS_CODES } from "../constants";
 
 class ShowsController extends BaseController {
@@ -22,19 +26,15 @@ class ShowsController extends BaseController {
 
     createShow(req: Request, res: Response) {
         const show = req.body;
-        const isValid = this.ajv.validate(SHOW_SCHEMA, show);
+        const isValid = this.ajv.validate(POST_SHOW_SCHEMA, show);
 
         if (!isValid) {
             const errors = this.ajv.errors;
-            this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
+            this.errorResponse(res, errors, STATUS_CODES.BAD_REQUEST);
         } else {
-            ShowsRepository.saveShow(show, (error, result) => {
+            ShowsRepository.saveShow(show, (error: any, result: any) => {
                 if (error) {
-                    this.errorResponse(
-                        res,
-                        STATUS_CODES.INTERNAL_SERVER_ERROR,
-                        error
-                    );
+                    this.errorResponse(res, error);
                 } else {
                     this.okResponse(res, result);
                 }
@@ -44,19 +44,15 @@ class ShowsController extends BaseController {
 
     patchShows(req: Request, res: Response) {
         const shows = req.body;
-        const isValid = this.ajv.validate(SHOWS_SCHEMA, shows);
+        const isValid = this.ajv.validate(PATCH_SHOWS_SCHEMA, shows);
 
         if (!isValid) {
             const errors = this.ajv.errors;
-            this.errorResponse(res, STATUS_CODES.BAD_REQUEST, errors);
+            this.errorResponse(res, errors, STATUS_CODES.BAD_REQUEST);
         } else {
-            ShowsRepository.patchShows(shows, (error, result) => {
+            ShowsRepository.patchShows(shows, (error: any, result: any) => {
                 if (error) {
-                    this.errorResponse(
-                        res,
-                        STATUS_CODES.INTERNAL_SERVER_ERROR,
-                        error
-                    );
+                    this.errorResponse(res, error);
                 } else {
                     this.okResponse(res, result);
                 }
@@ -65,17 +61,21 @@ class ShowsController extends BaseController {
     }
 
     getShow(req: Request, res: Response) {
-        ShowsRepository.getShow(req.params.showId, (error, result) => {
-            if (error) {
-                this.errorResponse(
-                    res,
-                    STATUS_CODES.INTERNAL_SERVER_ERROR,
-                    error
-                );
-            } else {
-                this.okResponse(res, result);
-            }
-        });
+        const queryParams = req.params;
+
+        const isValid = this.ajv.validate(GET_SHOW_SCHEMA, queryParams);
+
+        if (!isValid) {
+            this.errorResponse(res, this.ajv.errors, STATUS_CODES.BAD_REQUEST);
+        } else {
+            ShowsRepository.getShow(req.params.showId, (error: any, result: any) => {
+                if (error) {
+                    this.errorResponse(res, error);
+                } else {
+                    this.okResponse(res, result);
+                }
+            });
+        }
     }
 }
 
